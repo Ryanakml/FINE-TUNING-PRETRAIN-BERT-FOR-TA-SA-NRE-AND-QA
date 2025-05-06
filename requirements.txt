@@ -1,0 +1,7 @@
+streamlit==1.22.0
+transformers==4.28.1
+torch==2.0.1
+pandas==2.0.1
+matplotlib==3.7.1
+seaborn==0.12.2
+numpy==1.24.3

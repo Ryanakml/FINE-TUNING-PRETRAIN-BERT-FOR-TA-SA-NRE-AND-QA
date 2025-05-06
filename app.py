@@ -1,10 +1,14 @@
 import streamlit as st
 import torch
+import gc
 from transformers import BertTokenizer, BertForSequenceClassification, BertForQuestionAnswering, BertForTokenClassification, pipeline
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 import numpy as np
+
+# Set memory management for PyTorch
+torch.set_num_threads(1)  # Limit number of threads to prevent memory issues
 
 # Set page configuration
 st.set_page_config(page_title="BERT Demo App", page_icon="🤖", layout="wide")
@@ -26,20 +30,28 @@ task = st.sidebar.radio(
 # Load models based on selected task
 @st.cache_resource
 def load_sentiment_model():
-    return pipeline("sentiment-analysis")
+    # Explicitly set device to CPU to avoid bus error
+    # Set small batch size and optimize memory usage
+    return pipeline("sentiment-analysis", device="cpu", batch_size=1, framework="pt")
 
 @st.cache_resource
 def load_ner_model():
-    return pipeline("ner")
+    # Explicitly set device to CPU to avoid bus error
+    # Set small batch size and optimize memory usage
+    return pipeline("ner", device="cpu", batch_size=1, framework="pt")
 
 @st.cache_resource
 def load_qa_model():
-    return pipeline("question-answering")
+    # Explicitly set device to CPU to avoid bus error
+    # Set small batch size and optimize memory usage
+    return pipeline("question-answering", device="cpu", batch_size=1, framework="pt")
 
 @st.cache_resource
 def load_classification_model():
     # Using a pre-trained model fine-tuned on emotion classification
-    return pipeline("text-classification", model="bhadresh-savani/bert-base-uncased-emotion")
+    # Explicitly set device to CPU to avoid bus error
+    # Set small batch size and optimize memory usage
+    return pipeline("text-classification", model="bhadresh-savani/bert-base-uncased-emotion", device="cpu", batch_size=1, framework="pt")
 
 # About BERT section
 if task == "About BERT":
@@ -91,6 +103,11 @@ elif task == "Sentiment Analysis":
             sentiment_model = load_sentiment_model()
             result = sentiment_model(user_input)
             
+            # Clean up memory
+            del sentiment_model
+            gc.collect()
+            torch.cuda.empty_cache() if torch.cuda.is_available() else None
+            
             # Display result
             sentiment = result[0]['label']
             score = result[0]['score']
@@ -140,6 +157,11 @@ elif task == "Named Entity Recognition":
             # Load model and predict
             ner_model = load_ner_model()
             results = ner_model(user_input)
+            
+            # Clean up memory
+            del ner_model
+            gc.collect()
+            torch.cuda.empty_cache() if torch.cuda.is_available() else None
             
             # Process results
             entities = {}
@@ -213,6 +235,11 @@ elif task == "Question Answering":
                 qa_model = load_qa_model()
                 result = qa_model(question=question, context=context)
                 
+                # Clean up memory
+                del qa_model
+                gc.collect()
+                torch.cuda.empty_cache() if torch.cuda.is_available() else None
+                
                 # Display result
                 answer = result['answer']
                 score = result['score']
@@ -246,6 +273,11 @@ elif task == "Text Classification":
             # Load model and predict
             classification_model = load_classification_model()
             result = classification_model(user_input)
+            
+            # Clean up memory
+            del classification_model
+            gc.collect()
+            torch.cuda.empty_cache() if torch.cuda.is_available() else None
             
             # Display result
             emotion = result[0]['label']

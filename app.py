@@ -335,5 +335,7 @@ st.sidebar.markdown("""
 ### About this app
 This app demonstrates various capabilities of BERT models for natural language processing tasks.
 
-Built with Streamlit and Hugging Face Transformers.
+Built by Ryan Akmal Pasya 
+
+GitHub: [ryanakmalpasya](GitHub: [ryanakmalpasya](URL_ADDRESS.com/ryanakmalpasya)
 """)

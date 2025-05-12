@@ -1,0 +1,111 @@
+goal 
+
+1. mlm, mask language model -> mask input word and make bert predict that mask
+2. nsp, next sentence prediction -> make bert can understand relationship of snetence or batch
+
+function needed:
+
+1. bertpretrainhead, head mean we want to add more head upper of our bert model to run 2 task
+- bert bacbone. call out out bert model
+- mlm head. dense layer, gelu and prediciton layer for our mlm system
+- nsp head. take representation of token cls, and dense layer for class binary, telling sentences is correlated or not.
+
+PSEUDOCODE :
+
+class BertPretrainHead:
+    initialize bert model with input vocab size
+
+    create predcition head:
+        - mlm head : neural network to predict masked word
+        - nsp head : neural network to predict if sentences is correlated
+
+    forward function(token_id, segment_id, position_token_id, attention_mask):
+        run token to bert model for understand context
+        for mlm:
+            - transform bert output through mlm neural network
+            - output prediciton for each token position
+        
+        for nsp:
+            take cls token embedding output
+            predict wether second sentence follow first sentence with binary clasification
+
+        return prediciton
+
+# prepare our data
+
+# MLM data creation
+def mlm data(tokens, mask=15%) :
+    copy tokens
+    create empty label -1 for position we dont wan to predict
+
+    for each token id position, randomly, 15% probability:
+        skip special token, cls, sep, and pad
+        store original token as label to loss 
+        80% probability = replace token input with mask
+        10% probability = replace token input with random word
+        10% probability = keep token unchange
+    
+    return masked token , labels
+
+
+
+# NSP data creation
+def nsp data(corpus input, tokenizer funtion, max length of word, batch_size)
+    empty array 3d for token, its sentences, and nsp labels
+    for data in batch:
+        with 50% probabilty:
+            select two concecutive sentence and labelled as 0. means positive
+        with another 50% probabily:
+            select two non concecutive sentence and labelled as 1. means negative
+
+        add cls at first, sep between sentence, sep at the end of second sentence.
+        set segment_id as sentences id, id 1 for fisrt sentences, and 2 for second sentences
+        return token_id, segment_id, and nsp labels
+
+ 
+ # Loss function
+
+def cross entropy loss (prediction, labels):
+    calculate loss for each token position
+    sum all loss
+    return loss
+
+# Training process, loop
+
+function train(model, optimizer, data):
+    - get masked token and label token token from original token
+    - passign it forward function to predict mlm and nsp labels
+    - calculate each loss
+    - total loss
+    - backprop - gradient decent to update parameters
+    - update parameter with optimizer 
+    - return loss aja
+
+# pretrain model
+
+function pretrain model (model, epoch, batch_size, data):
+    - training metriks for monitoring
+    - for each epoch:
+        for each batch in data :
+            - create mlm and nsp data format
+            - train it
+            - calculate it loss
+        calculate avg loss of for epoch by total both loss
+        log process
+    return training history metric
+
+
+# OVERALL
+
+1. base model - bert
+2. pretraining head - mlm and nsp
+3. for each epoch :
+    a. for each batch in corpus 
+        - create next sentence prediciton 
+        - create mlm data - mask 15% data input
+        - forward pass to predict
+        - calculate loss
+        - update parameter
+        - repeat a.
+
+4. model is done
